@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        body{
+            margin-bottom: 100px;
+        }
+        .title{
+            text-align: center;
+            font-size:24px;
+            color:#314151;
+            height: 64px;
+            line-height: 64px;
+        }
+        .game{
+            width: 600px;
+            height: 600px;
+            margin:0 auto;
+        }
+        .game .block{
+            width: 146px;
+            height: 146px;
+            border:2px solid #dddddd;
+            background: #f0f0f0;
+            float: left;
+            cursor: pointer;
+        }
+        .game .block:hover{
+            background: #2b84e0;
+        }
+        .game .block .pic{
+            height: 100%;
+            background:url(images/1.png) no-repeat center center;
+            /* 修改背景图片大小 */
+            /* background-size:背景图片宽度 背景图片高度; */
+            background-size:75% auto;
+            /* 变形缩放 */
+            transform:scaleX(0);
+            /* 设置过渡 */
+            transition: transform 0.3s;
+        }
+        /* 鼠标移上.block以后 里面的.pic对应的样式 */
+        .game .block:hover .pic{
+            transform:scaleX(1);
+        }
+        select{
+            float: right;
+            margin-right: 100px;
+            margin-top: 50px;
+            outline:none;
+            appearance: none;
+            background:url(images/arrow_down.png) no-repeat right center;
+            width: 100px;
+            height: 20px
+        }
+    </style>
+</head>
+        <body>
+            <h2 class="title">js记忆翻牌小游戏</h2>
+    <div class="game"></div>
+     
+<select name="ganme" id="">
+    <option value="0" selected="selected">--选择难度--</option>
+    <option value="1">难度1:2 x 2</option>
+    <option value="2">难度2:4 x 4</option>
+    <option value="3">难度3:6 x 6</option>  
+</select>
+
+ <script>
+   /*  
+       功能1. 根据不同游戏难度级别,动态生成相应个数的块数添加到game游戏区域中
+
+        游戏等级   总块数
+            1	2 x 2 = 4
+            2	4 x 4 = 16
+            3	6 x 6 = 36
+            ...
+            n	(2*n) * (2*n) 
+
+        注意: 每个块盒子的宽度高度需要动态计算出来,保证所有块盒子刚好填充整个游戏区域
+        
+        */
+
+        // 获取游戏区域的dom对象
+        var game = document.querySelector(".game");
+        // 获取游戏区域的总宽度
+        var gameWidth = game.offsetWidth;
+        // 获取游戏区域的总高度
+        var gameHeight = game.offsetHeight;
+
+        // 根据传递的等级渲染块到游戏区域中
+        function renderBlock( currentLevel ){
+            // 使用一个变量保存当前游戏等级
+            var level = currentLevel;
+            // 通过游戏等级计算出总块数
+            var blocks = (2*level)*(2*level);
+            // 根据总块数生成一对一对图片地址数组
+            var imgArr = createBlockBgImg( blocks );
+            // 通过游戏区域的总宽度计算出当前每个块的宽度
+            var blockWidth = gameWidth / (level*2)-4;
+            // 通过游戏区域的总高度计算出当前每个块的高度
+            var blockHeight = gameHeight / (level*2)-4;
+            // 清空游戏区域的标签内容
+            game.innerHTML = "";
+            
+            // 动态生成游戏块盒子
+            for(var i = 0; i < blocks; i++ ){
+                // 创建新的块
+                var newBlock = document.createElement("div");
+                // 设置块的类名
+                newBlock.className = "block";
+                // 设置块的宽度
+                newBlock.style.width = blockWidth+"px";
+                // 设置块的高度
+                newBlock.style.height = blockHeight+"px";
+
+                // 创建的新的图片层.pic
+                var newPic = document.createElement("div");
+                // 设置图片层的类名
+                newPic.className = "pic";
+                newPic.style.backgroundImage = "url("+imgArr[i].imgSrc+")";
+
+                // 把图片层追加到块层中
+                newBlock.appendChild( newPic );
+                
+                // 把块层加到游戏区域中
+                game.appendChild( newBlock );
+            }
+        }
+
+        // 默认显示难度2的块
+        renderBlock( 2 );
+
+        // 功能2: 选择不同的游戏难度,生成不同的块数
+        // 给select标签绑定onchange事件,修改游戏等级的值,并重新渲染块级追加到游戏区域中
+        // 找到select目标dom对象
+        var select = document.querySelector("select");
+        // onchange会在下拉框被选中项改变的时候触发
+        select.onchange = function(){
+            var level = select.value ;
+            renderBlock( level );
+        }
+
+        function shuffleArr( targetArr ){
+            return targetArr.sort(function(){
+                return Math.random()-0.5;
+            });
+        }
+
+        // 根据图片数量生成打乱的图片地址数组
+        function createBlockBgImg( currentBlocks ){
+            var allimgsArr = [];// 定义一个所有图片数组
+            for(var i = 1; i <= 20; i++ ){
+                // push方法用于把()里面的值添加到数组中
+                allimgsArr.push({
+                    num: i,
+                    imgSrc: "images/"+i+".png"
+                });
+            }
+            // 打乱数组
+            allimgsArr = shuffleArr( allimgsArr );
+
+
+            // 根据块数总数量,生成一对一对的图片数据
+            var halfBlocks = currentBlocks/2;
+            // 一对一对数据的图片数组
+            var imgArr = [];
+            for(var j = 0; j < halfBlocks; j++ ){
+                imgArr.push( allimgsArr[j] , allimgsArr[j] ); 
+            }
+            // 打乱数组
+            imgArr = shuffleArr( imgArr );
+            // 返回这个图片数组
+            return imgArr;
+        }
+ </script>
+</body>
+</html>
